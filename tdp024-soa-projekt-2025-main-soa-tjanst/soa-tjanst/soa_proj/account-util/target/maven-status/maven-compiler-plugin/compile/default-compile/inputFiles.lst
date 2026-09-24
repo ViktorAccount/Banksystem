@@ -1,0 +1,7 @@
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-util/src/main/java/se/liu/ida/tdp024/account/util/http/HTTPHelper.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-util/src/main/java/se/liu/ida/tdp024/account/util/http/HTTPHelperImpl.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-util/src/main/java/se/liu/ida/tdp024/account/util/json/AccountJsonSerializer.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-util/src/main/java/se/liu/ida/tdp024/account/util/json/AccountJsonSerializerImpl.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-util/src/main/java/se/liu/ida/tdp024/account/util/logger/AccountLogger.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-util/src/main/java/se/liu/ida/tdp024/account/util/logger/KafkaConfig.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-util/src/main/java/se/liu/ida/tdp024/account/util/logger/KafkaLogger.java

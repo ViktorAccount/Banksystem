@@ -1,0 +1,10 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+datalayer,se.liu.ida.tdp024.account.data.impl.db.util,CheckStatus,0,22,0,2,0,4,0,3,0,2
+datalayer,se.liu.ida.tdp024.account.data.impl.db.util,EMF,0,40,1,11,0,10,1,8,0,3
+datalayer,se.liu.ida.tdp024.account.data.impl.db.util,StorageFacadeDB,6,6,0,0,2,4,0,2,0,2
+datalayer,se.liu.ida.tdp024.account.data.impl.db.util,CheckValidationOfAccount,0,40,0,4,0,6,0,4,0,2
+datalayer,se.liu.ida.tdp024.account.data.impl.db.util,CheckCredit,0,22,0,2,0,4,0,3,0,2
+datalayer,se.liu.ida.tdp024.account.data.impl.db.facade,AccountEntityFacadeDB,31,157,6,8,8,42,4,10,0,7
+datalayer,se.liu.ida.tdp024.account.data.impl.db.facade,TransactionEntityFacadeDB,22,106,3,1,6,32,2,5,0,5
+datalayer,se.liu.ida.tdp024.account.data.impl.db.entity,TransactionDB,23,41,2,0,2,16,2,9,1,9
+datalayer,se.liu.ida.tdp024.account.data.impl.db.entity,AccountDatabase,14,47,1,1,1,15,2,8,1,8

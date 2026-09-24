@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AccountController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">rest</a> &gt; <a href="index.source.html" class="el_package">se.liu.ida.tdp024.account.rest</a> &gt; <span class="el_source">AccountController.java</span></div><h1>AccountController.java</h1><pre class="source lang-java linenums">package se.liu.ida.tdp024.account.rest;
+
+import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import se.liu.ida.tdp024.account.data.api.entity.Account;
+import se.liu.ida.tdp024.account.data.api.entity.Transaction;
+import se.liu.ida.tdp024.account.logic.api.facade.AccountLogicFacade;
+import se.liu.ida.tdp024.account.logic.api.facade.TransactionLogicFacade;
+import se.liu.ida.tdp024.account.util.logger.KafkaLogger;
+
+import java.util.List;
+
+
+@RestController
+@RequestMapping(&quot;/account-rest/account&quot;)  // Basadress för alla endpoints
+public class AccountController {
+
+    // Beroenden till logiklagret och Kafka-loggning
+    private final TransactionLogicFacade transactionFacade;
+    private final AccountLogicFacade accountFacade;
+    private final KafkaLogger kafka;
+
+    // Spring skapar dessa objekt automatiskt (dependency injection)
+    @Autowired
+    public AccountController(TransactionLogicFacade transactionFacade,
+                             AccountLogicFacade accountFacade,
+<span class="fc" id="L27">                             KafkaLogger kafka) {</span>
+<span class="fc" id="L28">        this.transactionFacade = transactionFacade;</span>
+<span class="fc" id="L29">        this.accountFacade = accountFacade;</span>
+<span class="fc" id="L30">        this.kafka = kafka;</span>
+<span class="fc" id="L31">    }</span>
+
+    // ------------------------------------------------------------
+    // 1. Skapa konto
+    
+    @GetMapping({&quot;/create&quot;, &quot;/create/&quot;})
+    public String createAccount(
+            @RequestParam(defaultValue = &quot;&quot;) String accounttype,
+            @RequestParam(defaultValue = &quot;&quot;) String person,
+            @RequestParam(defaultValue = &quot;&quot;) String bank) {
+
+<span class="fc" id="L42">        logKafka(&quot;create&quot;, &quot;Type: &quot; + accounttype + &quot;, Bank: &quot; + bank);</span>
+<span class="fc" id="L43">        return accountFacade.registerAccount(accounttype, person, bank);</span>
+    }
+
+    // ------------------------------------------------------------
+    // 2. Hämta konton för en person
+    
+    @GetMapping(&quot;/find/person&quot;)
+    public List&lt;Account&gt; findAccounts(@RequestParam(defaultValue = &quot;&quot;) String person) {
+<span class="fc" id="L51">        logKafka(&quot;find/person&quot;, &quot;Find accounts for person=&quot; + person);</span>
+<span class="fc" id="L52">        return accountFacade.findAccounts(person);</span>
+    }
+
+    // ------------------------------------------------------------
+    // 3. Kreditera konto
+    
+    @GetMapping(&quot;/credit&quot;)
+    public String creditAccount(
+            @RequestParam(defaultValue = &quot;&quot;) Long id,
+            @RequestParam(defaultValue = &quot;&quot;) Integer amount) {
+
+<span class="fc" id="L63">        logKafka(&quot;credit&quot;, &quot;Credit account id=&quot; + id + &quot;, amount=&quot; + amount);</span>
+<span class="fc" id="L64">        return accountFacade.creditAccount(id, amount);</span>
+    }
+
+    // ------------------------------------------------------------
+    // 4. Debitera konto
+    
+    @GetMapping(&quot;/debit&quot;)
+    public String debitAccount(
+            @RequestParam(defaultValue = &quot;&quot;) Long id,
+            @RequestParam(defaultValue = &quot;&quot;) Integer amount) {
+
+<span class="fc" id="L75">        logKafka(&quot;debit&quot;, &quot;Debit account id=&quot; + id + &quot;, amount=&quot; + amount);</span>
+<span class="fc" id="L76">        return accountFacade.debitAccount(id, amount);</span>
+    }
+
+    // ------------------------------------------------------------
+    // 5. Visa transaktioner för ett konto
+    
+    @GetMapping(&quot;/transactions&quot;)
+    public List&lt;Transaction&gt; findTransactions(@RequestParam(defaultValue = &quot;&quot;) Long id) {
+<span class="fc" id="L84">        logKafka(&quot;transactions&quot;, &quot;Fetch transactions for account id=&quot; + id);</span>
+<span class="fc" id="L85">        return transactionFacade.findTransactions(id);</span>
+    }
+
+    // ------------------------------------------------------------
+    //  för Kafka-loggning
+   
+    private void logKafka(String path, String info) {
+<span class="fc" id="L92">        kafka.sendRestMessage(</span>
+                &quot;Method: GET\n&quot; +
+                &quot;\tEndpoint: /account-rest/account/&quot; + path + &quot;\n&quot; +
+                &quot;\t&quot; + info
+        );
+<span class="fc" id="L97">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

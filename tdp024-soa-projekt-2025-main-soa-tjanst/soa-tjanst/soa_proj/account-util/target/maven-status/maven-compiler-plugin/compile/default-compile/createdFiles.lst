@@ -1,0 +1,8 @@
+se/liu/ida/tdp024/account/util/http/HTTPHelper.class
+se/liu/ida/tdp024/account/util/json/AccountJsonSerializer.class
+se/liu/ida/tdp024/account/util/http/HTTPHelperImpl.class
+se/liu/ida/tdp024/account/util/logger/AccountLogger.class
+se/liu/ida/tdp024/account/util/logger/KafkaLogger.class
+se/liu/ida/tdp024/account/util/logger/AccountLogger$TodoLoggerLevel.class
+se/liu/ida/tdp024/account/util/logger/KafkaConfig.class
+se/liu/ida/tdp024/account/util/json/AccountJsonSerializerImpl.class

@@ -1,0 +1,13 @@
+----------------------------------------------------------------
+Thu Nov 06 20:06:20 CET 2025:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.16.1.1 - (1901046): instance a816c00e-019a-5a90-0789-00005c2c0188 
+on database directory /Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/target/derby-home/${derby.system.home}/testdb with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@14dad5dc 
+Loaded from file:/Users/vl/.m2/repository/org/apache/derby/derby/10.16.1.1/derby-10.16.1.1.jar
+java.vendor=Homebrew
+java.runtime.version=25
+user.dir=/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer
+os.name=Mac OS X
+os.arch=x86_64
+os.version=15.0.1
+derby.system.home=/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/target/derby-home
+Database Class Loader started - derby.database.classpath=''

@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: se.liu.ida.tdp024.account.data.test.facade.AccountEntityFacadeTest
+-------------------------------------------------------------------------------
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.349 s -- in se.liu.ida.tdp024.account.data.test.facade.AccountEntityFacadeTest

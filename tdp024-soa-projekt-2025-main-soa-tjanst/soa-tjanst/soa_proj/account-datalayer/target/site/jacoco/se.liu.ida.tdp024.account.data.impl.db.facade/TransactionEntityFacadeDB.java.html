@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TransactionEntityFacadeDB.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">datalayer</a> &gt; <a href="index.source.html" class="el_package">se.liu.ida.tdp024.account.data.impl.db.facade</a> &gt; <span class="el_source">TransactionEntityFacadeDB.java</span></div><h1>TransactionEntityFacadeDB.java</h1><pre class="source lang-java linenums">package se.liu.ida.tdp024.account.data.impl.db.facade;
+
+
+import jakarta.persistence.EntityManager;      
+import jakarta.persistence.EntityTransaction;  
+import jakarta.persistence.TypedQuery;         
+
+
+import org.springframework.beans.factory.annotation.Autowired; 
+import org.springframework.stereotype.Repository;              
+
+import se.liu.ida.tdp024.account.data.api.entity.Account;      
+import se.liu.ida.tdp024.account.data.api.entity.Transaction;  
+import se.liu.ida.tdp024.account.data.api.facade.TransactionEntityFacade; 
+import se.liu.ida.tdp024.account.data.impl.db.entity.TransactionDB;       
+import se.liu.ida.tdp024.account.data.impl.db.util.*;                      
+import se.liu.ida.tdp024.account.util.logger.KafkaLogger;                 
+
+import java.util.List;
+
+
+
+@Repository // Markerar att denna klass hanterar databasoperationer i Spring
+public class TransactionEntityFacadeDB implements TransactionEntityFacade {
+
+    private final KafkaLogger kafkaLogger;
+
+    // @Autowired = Spring Boot skapar automatiskt ett KafkaLogger-objekt
+    // och skickar in det här i konstruktorn (dependency injection)
+    @Autowired
+<span class="fc" id="L31">    public TransactionEntityFacadeDB(KafkaLogger kafkaLogger) {</span>
+<span class="fc" id="L32">        this.kafkaLogger = kafkaLogger;</span>
+<span class="fc" id="L33">    }</span>
+
+   
+    @Override
+    public Transaction createTransaction(CheckCredit type, Integer amount, CheckStatus status, Account account) {
+
+        // EntityManager =  kontakt med databasen (öppnar/stänger kommunikation)
+<span class="fc" id="L40">        EntityManager em = EMF.getEntityManager();</span>
+
+        // EntityTransaction = själva databashändelsen (börjar, sparar, eller ångrar)
+<span class="fc" id="L43">        EntityTransaction tx = em.getTransaction();</span>
+
+        try {
+            // Börja skriva till databasen
+<span class="fc" id="L47">            tx.begin();</span>
+
+            // Skapar en ny transaktion (TransactionDB är en JPA-entity som sparas i databasen)
+<span class="fc" id="L50">            TransactionDB record = new TransactionDB(type, amount, status, account);</span>
+
+            // Sparar transaktionen i databasen (lägg till ny rad i tabellen)
+<span class="fc" id="L53">            em.persist(record);</span>
+
+            // Godkänn ändringen (spara permanent i databasen)
+<span class="fc" id="L56">            tx.commit();</span>
+
+            // Skicka loggmeddelande till Kafka så vi har spårbarhet
+<span class="fc" id="L59">            logToKafka(record);</span>
+
+            // Returnerar den sparade transaktionen
+<span class="fc" id="L62">            return record;</span>
+
+<span class="nc" id="L64">        } catch (Exception e) {</span>
+            // Exception = fel som kan uppstå, t.ex. databasfel eller nullvärde
+            // Om något går fel under transaktionen:
+<span class="nc bnc" id="L67" title="All 2 branches missed.">            if (tx.isActive()) tx.rollback(); // rollback = ångra ändringen så inget sparas felaktigt</span>
+<span class="nc" id="L68">            System.err.println(&quot; Error persisting transaction (new EM): &quot; + e.getMessage());</span>
+<span class="nc" id="L69">            return null; // returnerar null för att visa att något gick fel</span>
+        } finally {
+            // finally = körs alltid oavsett om det gick bra eller dåligt
+<span class="fc" id="L72">            em.close();</span>
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    // Skapar en ny transaktion men använder redan aktiv databasanslutning
+   
+    @Override
+    public Transaction createTransaction(EntityManager em, CheckCredit type, Integer amount, CheckStatus status, Account account) {
+
+        // Skapar ny transaktionspost i minnet
+<span class="fc" id="L83">        TransactionDB record = new TransactionDB(type, amount, status, account);</span>
+
+        try {
+            // Sparar transaktionen direkt i databasen (ingen ny tx.begin() här)
+<span class="fc" id="L87">            em.persist(record);</span>
+
+            // Loggar till Kafka att transaktionen skapats
+<span class="fc" id="L90">            logToKafka(record);</span>
+
+            // Returnerar transaktionen till anroparen (t.ex. AccountEntityFacadeDB)
+<span class="fc" id="L93">            return record;</span>
+<span class="fc" id="L94">        } catch (Exception e) {</span>
+            // Fångar eventuella fel och skriver ut i terminalen
+<span class="fc" id="L96">            System.err.println(&quot; Error persisting transaction (shared EM): &quot; + e.getMessage());</span>
+<span class="fc" id="L97">            return null;</span>
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    // Hämtar alla transaktioner för ett visst konto
+
+    @Override
+    public List&lt;Transaction&gt; getsTransactions(Long accountId) {
+        // Skapar ny databasanslutning
+<span class="fc" id="L107">        EntityManager em = EMF.getEntityManager();</span>
+
+        try {
+            // TypedQuery = fråga till databasen 
+            // Här hämtas alla TransactionDB där kontots id matchar det vi skickar in
+<span class="fc" id="L112">            TypedQuery&lt;Transaction&gt; query = em.createQuery(</span>
+                &quot;SELECT t FROM TransactionDB t WHERE t.account.id = :id&quot;, Transaction.class);
+
+<span class="fc" id="L115">            query.setParameter(&quot;id&quot;, accountId);</span>
+
+            // Kör frågan och returnerar listan med transaktioner
+<span class="fc" id="L118">            return query.getResultList();</span>
+        } finally {
+<span class="fc" id="L120">            em.close();</span>
+        }
+    }
+
+    //  Loggar transaktionen till Kafka (centralt loggsystem)
+    
+    private void logToKafka(Transaction tx) {
+
+        // tx = förkortning för &quot;transaction&quot; (den transaktion vi loggar)
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (tx == null) return; // Om inget att logga, avbryt</span>
+
+        try {
+            // Skapar ett textmeddelande med info om transaktionen
+<span class="fc" id="L133">            String msg = String.format(</span>
+                &quot;Transaction recorded:\n\tType: %s\n\tAmount: %d\n\tStatus: %s&quot;,
+<span class="fc" id="L135">                tx.getTransactionstype(),  // CREDIT eller DEBIT</span>
+<span class="fc" id="L136">                tx.getAmount(),            // beloppet</span>
+<span class="fc" id="L137">                tx.getState()              // OK eller FAILED</span>
+            );
+
+            // Skickar meddelandet till Kafka (via KafkaLogger)
+<span class="fc" id="L141">            kafkaLogger.sendDataMessage(msg);</span>
+
+<span class="nc" id="L143">        } catch (Exception e) {</span>
+            // Fångar eventuella fel vid loggning
+<span class="nc" id="L145">            System.err.println(&quot; Kafka logging failed: &quot; + e.getMessage());</span>
+<span class="fc" id="L146">        }</span>
+<span class="fc" id="L147">    }</span>
+}
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

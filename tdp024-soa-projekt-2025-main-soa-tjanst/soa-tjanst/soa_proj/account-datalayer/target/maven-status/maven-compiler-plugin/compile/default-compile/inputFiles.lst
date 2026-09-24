@@ -1,0 +1,14 @@
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/src/main/java/se/liu/ida/tdp024/account/data/api/entity/Account.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/src/main/java/se/liu/ida/tdp024/account/data/api/entity/Transaction.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/src/main/java/se/liu/ida/tdp024/account/data/api/facade/AccountEntityFacade.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/src/main/java/se/liu/ida/tdp024/account/data/api/facade/TransactionEntityFacade.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/src/main/java/se/liu/ida/tdp024/account/data/api/util/StorageFacade.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/src/main/java/se/liu/ida/tdp024/account/data/impl/db/entity/AccountDatabase.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/src/main/java/se/liu/ida/tdp024/account/data/impl/db/entity/TransactionDB.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/src/main/java/se/liu/ida/tdp024/account/data/impl/db/facade/AccountEntityFacadeDB.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/src/main/java/se/liu/ida/tdp024/account/data/impl/db/facade/TransactionEntityFacadeDB.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/src/main/java/se/liu/ida/tdp024/account/data/impl/db/util/CheckCredit.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/src/main/java/se/liu/ida/tdp024/account/data/impl/db/util/CheckStatus.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/src/main/java/se/liu/ida/tdp024/account/data/impl/db/util/CheckValidationOfAccount.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/src/main/java/se/liu/ida/tdp024/account/data/impl/db/util/EMF.java
+/Users/vl/tuva/tdp024/soa-tjanst/soa_proj/account-datalayer/src/main/java/se/liu/ida/tdp024/account/data/impl/db/util/StorageFacadeDB.java

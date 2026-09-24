@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AccountEntityFacadeDB.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">datalayer</a> &gt; <a href="index.source.html" class="el_package">se.liu.ida.tdp024.account.data.impl.db.facade</a> &gt; <span class="el_source">AccountEntityFacadeDB.java</span></div><h1>AccountEntityFacadeDB.java</h1><pre class="source lang-java linenums">package se.liu.ida.tdp024.account.data.impl.db.facade;
+
+import jakarta.persistence.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import se.liu.ida.tdp024.account.data.api.entity.Account;
+import se.liu.ida.tdp024.account.data.api.entity.Transaction;
+import se.liu.ida.tdp024.account.data.api.facade.AccountEntityFacade;
+import se.liu.ida.tdp024.account.data.api.facade.TransactionEntityFacade;
+import se.liu.ida.tdp024.account.data.impl.db.entity.AccountDatabase;
+import se.liu.ida.tdp024.account.data.impl.db.util.*;
+
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+
+ * Klassens uppgift:
+ *  Skapa nya konton (createAccount)
+ * Kreditera och debitera konton (credit/debit)
+ * Logga alla transaktioner via TransactionEntityFacade
+ 
+ */
+@Repository  // Markerar att denna klass hanterar databasoperationer i Spring
+public class AccountEntityFacadeDB implements AccountEntityFacade {
+
+
+    // Används för att skapa transaktioner (t.ex. kredit/debit-loggar)
+    private final TransactionEntityFacade transactionFacade;
+
+    
+<span class="fc" id="L33">    private static final ConcurrentHashMap&lt;Long, ReentrantLock&gt; ACCOUNT_LOCKS = new ConcurrentHashMap&lt;&gt;();</span>
+
+    @Autowired
+<span class="fc" id="L36">    public AccountEntityFacadeDB(TransactionEntityFacade transactionFacade) {</span>
+<span class="fc" id="L37">        this.transactionFacade = transactionFacade;</span>
+<span class="fc" id="L38">    }</span>
+
+    // -----------------------------------
+    // Skapa nytt konto i databasen
+    // -----------------------------------
+    @Override
+    public Account createAccount(String accountType, String personKey, String bankKey) {
+
+        // EntityManager = vår &quot;databaskoppling&quot;
+<span class="fc" id="L47">        EntityManager em = EMF.getEntityManager();</span>
+        // Transaction = vår &quot;pågående databasoperation&quot; (typ ett kvitto vi fyller i)
+<span class="fc" id="L49">        EntityTransaction tx = em.getTransaction();</span>
+
+        try {
+            // Skapa ett nytt konto-objekt som följer ritningen (AccountDatabase)
+<span class="fc" id="L53">            AccountDatabase newAccount = new AccountDatabase(</span>
+<span class="fc" id="L54">                CheckValidationOfAccount.valueOf(accountType), // Kontotyp (SAVINGS / CHECK)</span>
+                personKey, // Personnyckel (från person-api)
+                bankKey    // Banknyckel (från bank-api)
+            );
+
+            // Starta databastransaktion (nu börjar vi skriva i databasen)
+<span class="fc" id="L60">            tx.begin();</span>
+<span class="fc" id="L61">            em.persist(newAccount);  // Spara kontot till databasen</span>
+<span class="fc" id="L62">            tx.commit();             // Godkänn ändringen (spara permanent)</span>
+
+            // Returnera det skapade kontot
+<span class="fc" id="L65">            return newAccount;</span>
+
+<span class="nc" id="L67">        } catch (Exception e) {</span>
+            // Om något går fel, rulla tillbaka ändringen (inget sparas)
+<span class="nc bnc" id="L69" title="All 2 branches missed.">            if (tx.isActive()) tx.rollback();</span>
+<span class="nc" id="L70">            System.err.println(&quot;Account creation failed for type: &quot; + accountType + &quot; | &quot; + e.getMessage());</span>
+<span class="nc" id="L71">            return null;</span>
+        } finally {
+<span class="fc" id="L73">            em.close();</span>
+        }
+    }
+
+    
+    @Override
+    public Transaction credit(Long accountId, Integer amount) {
+<span class="fc" id="L80">        return executeTransaction(accountId, amount, CheckCredit.CREDIT);</span>
+    }
+
+   
+    @Override
+    public Transaction debit(Long accountId, Integer amount) {
+        // Skickar till samma hjälpfunktion men med DEBIT istället
+<span class="fc" id="L87">        return executeTransaction(accountId, amount, CheckCredit.DEBIT);</span>
+    }
+
+    // -----------------------------------
+    // Hämta alla konton som tillhör en viss person
+    // -----------------------------------
+    @Override
+    public List&lt;Account&gt; getAccounts(String personKey) {
+<span class="fc" id="L95">        EntityManager em = EMF.getEntityManager();</span>
+        try {
+<span class="fc" id="L97">            TypedQuery&lt;Account&gt; query = em.createQuery(</span>
+                &quot;SELECT a FROM AccountDatabase a WHERE a.personKey = :key&quot;, Account.class);
+<span class="fc" id="L99">            query.setParameter(&quot;key&quot;, personKey);</span>
+<span class="fc" id="L100">            return query.getResultList(); // Returnerar listan med konton</span>
+        } finally {
+<span class="fc" id="L102">            em.close(); // Stänger databaskopplingen</span>
+        }
+    }
+
+
+
+    // KOMPLETERING 
+    //1. // INGEN LÅSNING PÅ DENNA NIVÅ EFTERSOM DETTA GÖRS I DATABASNIVÅ KOKMPLETERING
+    //2. // KOMPLETRERING HÄR SKA MERGE ANVÄNDAS ISTÄLLLET FÖR ATT UPDATERA
+
+    // ÄR FIXATS SE NERE
+    // -----------------------------------
+    private Transaction executeTransaction(Long accountId, Integer amount, CheckCredit txType) {
+
+      // KOMPLETERING: INGEN LÅSNING PÅ DENNA NIVÅ EFTERSOM DETTA GÖRS I DATABASNIVÅ KOKMPLETERING
+      // FIXAT: TOG BORT LÅSNINGEN
+
+<span class="fc" id="L119">        try (EntityManager em = EMF.getEntityManager()) {</span>
+<span class="fc" id="L120">            EntityTransaction tx = em.getTransaction();</span>
+<span class="fc" id="L121">            Transaction transactionResult = null;</span>
+
+            try {
+<span class="fc" id="L124">                tx.begin(); // Startar transaktionen (vi börjar skriva till databasen)</span>
+
+                // Hämtar kontot med skrivlås från databasen
+<span class="fc" id="L127">                AccountDatabase account = em.find(AccountDatabase.class, accountId, LockModeType.PESSIMISTIC_WRITE);</span>
+
+                // Om kontot inte finns, avbryt
+<span class="fc bfc" id="L130" title="All 2 branches covered.">                if (account == null) {</span>
+<span class="fc" id="L131">                    System.err.println(&quot; No account found for ID: &quot; + accountId);</span>
+<span class="fc" id="L132">                    tx.rollback();</span>
+<span class="fc" id="L133">                    return null;</span>
+                }
+
+                // Förbereder status (om transaktionen lyckas eller inte)
+<span class="fc" id="L137">                CheckStatus outcome = CheckStatus.FAILED;</span>
+
+                // Om kredit → lägg till pengar
+<span class="fc bfc" id="L140" title="All 2 branches covered.">                if (txType == CheckCredit.CREDIT) {</span>
+<span class="fc" id="L141">                    account.setHoldings(account.getHoldings() + amount);</span>
+<span class="fc" id="L142">                    outcome = CheckStatus.OK;</span>
+
+                // Om debit → ta bort pengar (men bara om det finns tillräckligt)
+<span class="pc bpc" id="L145" title="1 of 4 branches missed.">                } else if (txType == CheckCredit.DEBIT &amp;&amp; account.getHoldings() &gt;= amount) {</span>
+<span class="fc" id="L146">                    account.setHoldings(account.getHoldings() - amount);</span>
+<span class="fc" id="L147">                    outcome = CheckStatus.OK;</span>
+                }
+
+                // Uppdatera kontot i databasen
+
+
+                // KOMPLETRERING HÄR SKA MERGE ANVÄNDAS ISTÄLLLET FÖR ATT UPDATERA
+                // FIXAt bytt till MERGE
+<span class="fc" id="L155">                em.merge(account); </span>
+
+                // Skapa en ny transaktionspost i databasen (via TransactionEntityFacade)
+<span class="fc" id="L158">                transactionResult = transactionFacade.createTransaction(</span>
+                    em, txType, amount, outcome, account
+                );
+
+                // Spara ändringen (commit = gör allt permanent)
+<span class="fc" id="L163">                tx.commit();</span>
+
+<span class="nc" id="L165">            } catch (Exception e) {</span>
+                // Om något går fel, avbryt hela operationen
+<span class="nc bnc" id="L167" title="All 2 branches missed.">                if (tx.isActive()) tx.rollback();</span>
+<span class="nc" id="L168">                System.err.println(&quot;Transaction failed (&quot; + txType + &quot;): &quot; + e.getMessage());</span>
+<span class="nc" id="L169">                e.printStackTrace();</span>
+<span class="fc" id="L170">            }</span>
+
+            // Returnerar den skapade transaktionen
+<span class="fc" id="L173">            return transactionResult;</span>
+
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">        } </span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

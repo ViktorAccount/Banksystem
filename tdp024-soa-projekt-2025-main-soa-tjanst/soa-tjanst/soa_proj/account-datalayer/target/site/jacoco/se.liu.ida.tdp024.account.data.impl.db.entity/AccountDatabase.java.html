@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AccountDatabase.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">datalayer</a> &gt; <a href="index.source.html" class="el_package">se.liu.ida.tdp024.account.data.impl.db.entity</a> &gt; <span class="el_source">AccountDatabase.java</span></div><h1>AccountDatabase.java</h1><pre class="source lang-java linenums">package se.liu.ida.tdp024.account.data.impl.db.entity;
+
+import jakarta.persistence.*;
+import se.liu.ida.tdp024.account.data.api.entity.Account;
+import se.liu.ida.tdp024.account.data.impl.db.util.CheckValidationOfAccount;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * ---------------------------------------------------------------
+ * Detta är JPA-implementationen av interfacet &quot;Account&quot;.
+ *
+ * Klassen visar hur ett konto faktiskt lagras i databasen.
+ *
+
+ */
+@Entity
+public class AccountDatabase implements Account {
+
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    
+    private String personKey;
+    private String bankKey;
+
+   
+<span class="fc" id="L29">    private Integer holdings = 0;</span>
+
+    
+    @Enumerated(EnumType.STRING)
+    private CheckValidationOfAccount accountType;
+
+   
+<span class="fc" id="L36">    protected AccountDatabase() {</span>
+<span class="fc" id="L37">    }</span>
+
+    
+<span class="fc" id="L40">    public AccountDatabase(CheckValidationOfAccount type, String personKey, String bankKey) {</span>
+<span class="fc" id="L41">        this.accountType = type;</span>
+<span class="fc" id="L42">        this.personKey = personKey;</span>
+<span class="fc" id="L43">        this.bankKey = bankKey;</span>
+<span class="fc" id="L44">    }</span>
+
+    // -----------------------------------------------------------
+    // Nedan är &quot;getters&quot; och &quot;setters&quot; – metoder som hämtar eller
+    // uppdaterar vardenvärden 
+    // -----------------------------------------------------------
+
+    @Override
+    @JsonProperty(&quot;id&quot;)
+    public Long getIdentifier() {
+<span class="fc" id="L54">        return id; // Returnerar kontots unika ID</span>
+    }
+
+    @Override
+    @JsonProperty(&quot;personKey&quot;)
+    public String getAccountHolderKey() {
+<span class="fc" id="L60">        return personKey; // Returnerar vem kontot tillhör (personens nyckel)</span>
+    }
+
+    @Override
+    @JsonProperty(&quot;accountType&quot;)
+    public String getTypeOfAccount() {
+        // Om accountType inte är null, returnera dess textnamn
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        return accountType != null ? accountType.name() : null;</span>
+    }
+
+    @Override
+    @JsonProperty(&quot;bankKey&quot;)
+    public String getBankKey() {
+<span class="fc" id="L73">        return bankKey; // Returnerar vilken bank kontot tillhör</span>
+    }
+
+    @Override
+    @JsonProperty(&quot;holdings&quot;)
+    public Integer getHoldings() {
+<span class="fc" id="L79">        return holdings; // Returnerar nuvarande saldo</span>
+    }
+
+    @Override
+    public void setHoldings(Integer newHoldings) {
+<span class="fc" id="L84">        this.holdings = newHoldings; // Uppdaterar saldot (vid kredit/debit)</span>
+<span class="fc" id="L85">    }</span>
+
+    // -----------------------------------------------------------
+    // toString() används för loggning och felsökning.
+   
+    @Override
+    public String toString() {
+<span class="nc" id="L92">        return &quot;AccountDB{id=&quot; + id +</span>
+                &quot;, type=&quot; + accountType +
+                &quot;, personKey='&quot; + personKey + '\'' +
+                &quot;, bankKey='&quot; + bankKey + '\'' +
+                &quot;, holdings=&quot; + holdings + '}';
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

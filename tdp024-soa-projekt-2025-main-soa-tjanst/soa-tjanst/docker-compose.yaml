@@ -1,0 +1,85 @@
+services:
+  java-service:
+    build:
+      context: ./soa_proj
+      dockerfile: account-rest/Dockerfile # Point to the specific Dockerfile
+    container_name: java-service
+    depends_on:
+      - kafka-service
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+      
+
+  go-gin-service:
+    build:
+      context: ./bank-api-goo
+      dockerfile: Dockerfile
+    container_name: go-gin-service
+    ports:
+      - "8070:8070"
+    depends_on:
+      - kafka-service
+    environment:
+      GIN_PORT: 8070
+    networks:
+      - app-network
+
+
+  python-person-service:
+    environment:
+      KAFKA_HOST: kafka-service:9092
+    build:
+      context: ./person-api-python
+      dockerfile: Dockerfile
+    container_name: python-person-service
+    ports:
+      - "8060:8060"
+    depends_on:
+      - kafka-service
+    networks:
+      app-network:
+        aliases: 
+          - person-service
+
+
+  kafka-service:
+    image: apache/kafka:3.9.1
+    container_name: kafka-service
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://kafka-service:9092,CONTROLLER://kafka-service:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-service:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-service:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_NUM_PARTITIONS: 3
+      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+    ports:
+      - "9092:9092"
+    networks:
+      - app-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka-service
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-service:9092
+      KAFKA_CLUSTERS_0_KRAFT: "true"
+    ports:
+      - "8081:8080"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
