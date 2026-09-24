@@ -1,4 +1,4 @@
-##Docker
+## Docker
 Projektet kräver att Docker är installerat. Första gången det startas körs docker compose up --build.
 
 När du står i mappen SOA_tjanst och ska köra testerna måste du först starta
